@@ -3,8 +3,9 @@ import { App } from './app';
 import { render } from '@testing-library/angular';
 import { expect, Mocked } from 'vitest';
 import { page } from 'vitest/browser';
-import { provideQueryClient, QueryClient } from '@tanstack/angular-query-experimental';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query';
 import { DataService } from './data.service';
+import { ApplicationRef } from '@angular/core';
 
 describe('App', () => {
 	let dataServiceMock: Mocked<DataService>;
@@ -15,54 +16,26 @@ describe('App', () => {
 
 	it('should work using the testing library', async () => {
 		let sut = await render(App, {
-			providers: [provideQueryClient(new QueryClient()), { provide: DataService, useValue: dataServiceMock }],
+			providers: [provideTanStackQuery(() => new QueryClient()), { provide: DataService, useValue: dataServiceMock }],
 		});
 
-		await sut.rerender();
-		sut.detectChanges();
 		await sut.fixture.whenStable();
-		await sut.rerender();
-		sut.detectChanges();
-		await sut.fixture.whenStable();
-		await sut.rerender();
-		sut.detectChanges();
-		await sut.fixture.whenStable();
-		await sut.rerender();
-		sut.detectChanges();
-		await sut.fixture.whenStable();
-		await sut.rerender();
-		TestBed.tick();
-		TestBed.tick();
-		TestBed.tick();
-		sut.fixture.detectChanges();
-		await sut.fixture.whenStable();
-		sut.detectChanges();
-		await sut.fixture.whenStable();
-		await sut.rerender();
-		await expect(page.getByRole('textbox')).toHaveValue(9999);
+
+		expect(page.getByRole('textbox')).toHaveValue('9999');
 		expect(sut.fixture.componentInstance.formField.value).toBe(9999);
 	});
 
 	it('should work using TestBed', async () => {
 		TestBed.configureTestingModule({
 			imports: [App],
-			providers: [provideQueryClient(new QueryClient()), { provide: DataService, useValue: dataServiceMock }],
+			providers: [provideTanStackQuery(() => new QueryClient()), { provide: DataService, useValue: dataServiceMock }],
 		});
 		let fixture = TestBed.createComponent(App);
+		const appRef = TestBed.inject(ApplicationRef);
 		let sut = fixture.componentInstance;
+		fixture.detectChanges();
 
-		fixture.detectChanges();
-		await fixture.whenStable();
-		fixture.detectChanges();
-		await fixture.whenStable();
-		fixture.detectChanges();
-		await fixture.whenStable();
-		TestBed.tick();
-		TestBed.tick();
-		TestBed.tick();
-		TestBed.tick();
-		fixture.detectChanges();
-		await fixture.whenStable();
+		await appRef.whenStable();
 
 		expect(sut.formField.value).toBe(9999);
 	});
